@@ -1,4 +1,4 @@
-package com.ljb.hhrpc.registry.msg;
+package com.ljb.hhrpc.msg;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -1,4 +1,4 @@
-package com.ljb.hhrpc;
+package com.ljb.hhrpc.demo;
 
 /**
  * @author liujiabei

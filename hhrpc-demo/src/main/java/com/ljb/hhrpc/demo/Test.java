@@ -1,7 +1,6 @@
 package com.ljb.hhrpc.demo;
 
-import com.ljb.hhrpc.registry.HelloHandler;
-import com.ljb.hhrpc.registry.RPCServer;
+import com.ljb.hhrpc.RPCServer;
 
 import java.io.IOException;
 
@@ -25,12 +24,15 @@ public class Test {
 //                        e.printStackTrace();
 //                    }
 
-                    RPCServer rpcServer = new RPCServer("localhost",18888,10,10);
-                    rpcServer.service("hello",String.class, new HelloHandler());
-                    rpcServer.start();
+                    RPCServer rpcServer = new RPCServer("localhost", 18888, 10, 10);
+                    rpcServer.service(HelloService.class, HelloServiceImpl.class);
+                    try {
+                        rpcServer.start();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
         ).start();
-
 
 
 //        HelloService helloService = RpcClient.getRemote(HelloService.class, new InetSocketAddress("localhost", 18888));

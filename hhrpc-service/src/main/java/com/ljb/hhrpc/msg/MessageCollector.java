@@ -1,4 +1,4 @@
-package com.ljb.hhrpc.registry.msg;
+package com.ljb.hhrpc.msg;
 
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -63,20 +63,16 @@ public class MessageCollector extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        if (msg instanceof MessageInput) {
-            System.out.println("read a message");
-            // 用业务线程池处理消息
-            this.executor.execute(() -> {
-                this.handleMessage(ctx, (MessageInput) msg);
-            });
-        }
+        System.out.println("read a message");
+        // 用业务线程池处理消息
+        this.executor.execute(() -> {
+            this.handleMessage(ctx, msg);
+        });
     }
 
-    private void handleMessage(ChannelHandlerContext ctx, MessageInput input) {
-        // 业务逻辑在这里
-        Class<?> clazz = MessageRegistry.get(input.getType());
-        Object o = input.getPayload(clazz);
-        System.out.println(o);
+    private void handleMessage(ChannelHandlerContext ctx, Object msg) {
+        System.out.println(msg);
+        ctx.writeAndFlush(msg);
     }
 
     @Override
@@ -88,7 +84,7 @@ public class MessageCollector extends ChannelInboundHandlerAdapter {
         // 不管它，链接统统关闭，反正客户端具备重连机制
         System.out.println("connection error");
         cause.printStackTrace();
-        ctx.close();
+//        ctx.close();
     }
 
 }

@@ -11,26 +11,21 @@
 
     <artifactId>hhrpc-demo</artifactId>
 
-    <properties>
-        <hhrpc.version>1.0-SNAPSHOT</hhrpc.version>
-    </properties>
-
-
     <dependencies>
         <dependency>
             <artifactId>hhrpc-registry</artifactId>
             <groupId>com.ljb.hhrpc</groupId>
-            <version>${hhrpc.version}</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <artifactId>hhrpc-service</artifactId>
             <groupId>com.ljb.hhrpc</groupId>
-            <version>${hhrpc.version}</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <artifactId>hhrpc-client</artifactId>
             <groupId>com.ljb.hhrpc</groupId>
-            <version>${hhrpc.version}</version>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 

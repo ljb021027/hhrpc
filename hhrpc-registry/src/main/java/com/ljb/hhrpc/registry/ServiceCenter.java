@@ -1,20 +1,11 @@
 package com.ljb.hhrpc.registry;
 
-import com.ljb.hhrpc.registry.msg.MessageCollector;
-import com.ljb.hhrpc.registry.msg.MessageDecoder;
-import com.ljb.hhrpc.registry.msg.MessageEncoder;
-import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelPipeline;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.timeout.ReadTimeoutHandler;
-
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.lang.reflect.Method;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
@@ -43,48 +34,19 @@ public class ServiceCenter implements Server {
         executor.shutdown();
     }
 
-//    @Override
-//    public void start() throws IOException {
-//        ServerSocket server = new ServerSocket();
-//        server.bind(new InetSocketAddress(port));
-//        System.out.println("start server");
-//        try {
-//            while (true) {
-//                // 1.监听客户端的TCP连接，接到TCP连接后将其封装成task，由线程池执行
-//                executor.execute(new ServiceTask(server.accept()));
-//            }
-//        } finally {
-//            server.close();
-//        }
-//    }
-
     @Override
     public void start() throws IOException {
+        ServerSocket server = new ServerSocket();
+        server.bind(new InetSocketAddress(port));
+        System.out.println("start server");
         try {
-            ServerBootstrap bootstrap = new ServerBootstrap();
-            NioEventLoopGroup eventLoopGroup = new NioEventLoopGroup();
-            bootstrap.group(eventLoopGroup)
-                    .channel(NioServerSocketChannel.class)
-                    .childHandler(new ChannelInitializer<SocketChannel>() {
-                        @Override
-                        protected void initChannel(SocketChannel ch) throws Exception {
-                            ChannelPipeline pipe = ch.pipeline();
-                            // 如果客户端60秒没有任何请求，就关闭客户端链接
-                            pipe.addLast(new ReadTimeoutHandler(60));
-                            // 挂上解码器
-                            pipe.addLast(new MessageDecoder());
-                            // 挂上编码器
-                            pipe.addLast(new MessageEncoder());
-                            // 将业务处理器放在最后
-                            pipe.addLast(new MessageCollector(10));
-
-                        }
-                    });
-            bootstrap.bind("localhost", port).sync();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+            while (true) {
+                // 1.监听客户端的TCP连接，接到TCP连接后将其封装成task，由线程池执行
+                executor.execute(new ServiceTask(server.accept()));
+            }
+        } finally {
+            server.close();
         }
-
     }
 
     @Override
@@ -127,7 +89,7 @@ public class ServiceCenter implements Server {
                 Method method = serviceClass.getMethod(methodName, parameterTypes);
                 Object result = method.invoke(serviceClass.newInstance(), arguments);
 
-                // 3.将执行结果反序列化，通过socket发送给客户端
+                // 3.将执行结果反序列化，发送给客户端
                 output = new ObjectOutputStream(clent.getOutputStream());
                 output.writeObject(result);
             } catch (Exception e) {

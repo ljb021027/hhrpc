@@ -1,6 +1,5 @@
 package com.ljb.hhrpc.demo;
 
-import com.ljb.hhrpc.HelloService;
 import com.ljb.hhrpc.client.RpcClient;
 
 import java.net.InetSocketAddress;

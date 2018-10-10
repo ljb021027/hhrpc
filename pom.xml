@@ -13,6 +13,7 @@
         <module>hhrpc-demo</module>
         <module>hhrpc-service</module>
         <module>hhrpc-client</module>
+        <module>hhrpc-common</module>
     </modules>
 
     <dependencyManagement>

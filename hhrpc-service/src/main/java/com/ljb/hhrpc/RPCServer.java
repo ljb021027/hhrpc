@@ -1,6 +1,11 @@
-package com.ljb.hhrpc.registry;
+package com.ljb.hhrpc;
 
-import com.ljb.hhrpc.registry.msg.*;
+import com.ljb.hhrpc.common.bean.RPCRequest;
+import com.ljb.hhrpc.common.bean.RPCResponse;
+import com.ljb.hhrpc.common.codes.RPCDecoder;
+import com.ljb.hhrpc.common.codes.RPCEncoder;
+import com.ljb.hhrpc.msg.MessageCollector;
+import com.ljb.hhrpc.msg.MessageRegistry;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -32,39 +37,40 @@ public class RPCServer {
     private Channel serverChannel;
 
     // 注册服务的快捷方式
-    public RPCServer service(String type, Class<?> reqClass, IMessageHandler<?> handler) {
-        MessageRegistry.register(type, reqClass);
-        MessageHandlers.register(type, handler);
+    public RPCServer service(Class serviceInterface, Class<?> reqClass) {
+        MessageRegistry.register(serviceInterface.getName(), reqClass);
         return this;
     }
 
     // 启动RPC服务
-    public void start() {
+    public void start() throws InterruptedException {
         bootstrap = new ServerBootstrap();
         group = new NioEventLoopGroup(ioThreads);
         bootstrap.group(group);
         collector = new MessageCollector(workerThreads);
-        MessageEncoder encoder = new MessageEncoder();
         bootstrap.channel(NioServerSocketChannel.class).childHandler(new ChannelInitializer<SocketChannel>() {
             @Override
             public void initChannel(SocketChannel ch) throws Exception {
                 ChannelPipeline pipe = ch.pipeline();
                 // 如果客户端60秒没有任何请求，就关闭客户端链接
                 pipe.addLast(new ReadTimeoutHandler(60));
-                // 挂上解码器
-                pipe.addLast(new MessageDecoder());
-//                pipe.addLast(new LiveDecoder());
-                // 挂上编码器
-                pipe.addLast(encoder);
+                pipe.addLast(new RPCEncoder(RPCResponse.class));
+                pipe.addLast(new RPCDecoder(RPCRequest.class));
+//                // 挂上解码器
+//                pipe.addLast(new MessageDecoder());
+//                // 挂上编码器
+//                pipe.addLast(new MessageEncoder());
                 // 将业务处理器放在最后
                 pipe.addLast(collector);
             }
         });
-        bootstrap.option(ChannelOption.SO_BACKLOG, 100)  // 客户端套件字接受队列大小
-                .option(ChannelOption.SO_REUSEADDR, true) // reuse addr，避免端口冲突
-                .option(ChannelOption.TCP_NODELAY, true) // 关闭小流合并，保证消息的及时性
-                .childOption(ChannelOption.SO_KEEPALIVE, true); // 长时间没动静的链接自动关闭
-        serverChannel = bootstrap.bind(this.ip, this.port).channel();
+//        bootstrap.option(ChannelOption.SO_BACKLOG, 100)  // 客户端套件字接受队列大小
+//                .option(ChannelOption.SO_REUSEADDR, true) // reuse addr，避免端口冲突
+//                .option(ChannelOption.TCP_NODELAY, true) // 关闭小流合并，保证消息的及时性
+//                .childOption(ChannelOption.SO_KEEPALIVE, true); // 长时间没动静的链接自动关闭
+        ChannelFuture sync = bootstrap.bind(this.ip, this.port).sync();
+        sync.channel().closeFuture().sync();
+//        serverChannel = bootstrap.bind(this.ip, this.port).channel();
         System.out.printf("server started @ %s:%d\n", ip, port);
     }
 
