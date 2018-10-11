@@ -12,6 +12,7 @@ import java.net.Socket;
  * @since 2018/10/8
  */
 public class SocketHandler<T> implements InvocationHandler {
+
     private final InetSocketAddress addr;
 
     private final Class<T> clazz;
@@ -20,6 +21,7 @@ public class SocketHandler<T> implements InvocationHandler {
         addr = inetSocketAddress;
         clazz = clazzP;
     }
+
 
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {

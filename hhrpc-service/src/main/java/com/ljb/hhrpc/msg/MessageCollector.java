@@ -1,9 +1,13 @@
 package com.ljb.hhrpc.msg;
 
+import com.ljb.hhrpc.common.bean.RPCRequest;
+import com.ljb.hhrpc.common.bean.RPCResponse;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
+import java.lang.reflect.Method;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -66,13 +70,30 @@ public class MessageCollector extends ChannelInboundHandlerAdapter {
         System.out.println("read a message");
         // 用业务线程池处理消息
         this.executor.execute(() -> {
-            this.handleMessage(ctx, msg);
+            try {
+                this.handleMessage(ctx, msg);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         });
     }
 
-    private void handleMessage(ChannelHandlerContext ctx, Object msg) {
-        System.out.println(msg);
-        ctx.writeAndFlush(msg);
+    private void handleMessage(ChannelHandlerContext ctx, Object msg) throws Exception {
+        RPCRequest request = (RPCRequest) msg;
+        String serviceName = request.getClassName();
+        String methodName = request.getMethodName();
+        Class<?>[] parameterTypes = request.getParameterTypes();
+        Object[] arguments = request.getArgs();
+        Class serviceClass = MessageRegistry.get(serviceName);
+        if (serviceClass == null) {
+            throw new ClassNotFoundException(serviceName + " not found");
+        }
+        Method method = serviceClass.getMethod(methodName, parameterTypes);
+        Object result = method.invoke(serviceClass.newInstance(), arguments);
+        RPCResponse response = new RPCResponse();
+        response.setResult(result);
+        response.setRequestId(request.getRequestId());
+        ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
     }
 
     @Override

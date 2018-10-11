@@ -1,10 +1,12 @@
 package com.ljb.hhrpc.common.bean;
 
+import java.io.Serializable;
+
 /**
  * @author liujiabei
  * @since 2018/10/9
  */
-public class RPCRequest {
+public class RPCRequest implements Serializable {
 
     private String requestId;
     private String className;

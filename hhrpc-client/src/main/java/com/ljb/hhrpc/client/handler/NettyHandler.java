@@ -5,71 +5,70 @@ import com.ljb.hhrpc.common.bean.RPCResponse;
 import com.ljb.hhrpc.common.codes.RPCDecoder;
 import com.ljb.hhrpc.common.codes.RPCEncoder;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.ChannelPipeline;
-import io.netty.channel.EventLoopGroup;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * @author liujiabei
  * @since 2018/10/8
  */
-public class NettyHandler<T> implements InvocationHandler {
-
-    private static ExecutorService executor = Executors
-            .newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-
-    private static ClientCollector client;
+public class NettyHandler extends SimpleChannelInboundHandler<RPCResponse> {
 
     private final InetSocketAddress addr;
 
-    private final Class<T> clazz;
+    private RPCResponse response;
 
-    public NettyHandler(Class<T> clazzP, final InetSocketAddress inetSocketAddress) {
-        addr = inetSocketAddress;
-        clazz = clazzP;
+
+    public Object lock = new Object();
+
+    @Override
+    public void channelRead0(ChannelHandlerContext ctx, RPCResponse response) throws Exception {
+        this.response = response;
     }
 
     @Override
-    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        if (client == null) {
-            initClient();
-        }
-        return executor.submit(client).get();
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        ctx.close();
     }
 
-    /**
-     * 初始化客户端
-     */
-    private void initClient() {
-        client = new ClientCollector();
+    public NettyHandler(final InetSocketAddress inetSocketAddress) {
+        addr = inetSocketAddress;
+    }
+
+    public RPCResponse send(RPCRequest request) throws Exception {
         EventLoopGroup group = new NioEventLoopGroup();
-        Bootstrap b = new Bootstrap();
-        b.group(group)
-                .channel(NioSocketChannel.class)
-                .option(ChannelOption.TCP_NODELAY, true)
-                .handler(new ChannelInitializer<SocketChannel>() {
-                    @Override
-                    public void initChannel(SocketChannel ch) throws Exception {
-                        ChannelPipeline p = ch.pipeline();
-                        p.addLast(new RPCEncoder(RPCRequest.class));
-                        p.addLast(new RPCDecoder(RPCResponse.class));
-                        p.addLast(client);
-                    }
-                });
         try {
-            b.connect(addr).sync();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+            // 创建并初始化 Netty 客户端 Bootstrap 对象
+            Bootstrap bootstrap = new Bootstrap();
+            bootstrap.group(group);
+            bootstrap.channel(NioSocketChannel.class);
+            bootstrap.handler(new ChannelInitializer<SocketChannel>() {
+                @Override
+                public void initChannel(SocketChannel channel) throws Exception {
+                    ChannelPipeline pipeline = channel.pipeline();
+                    pipeline.addLast(new RPCEncoder(RPCRequest.class)); // 编码 RPC 请求
+                    pipeline.addLast(new RPCDecoder(RPCResponse.class)); // 解码 RPC 响应
+                    pipeline.addLast(NettyHandler.this); // 处理 RPC 响应
+                }
+            });
+            bootstrap.option(ChannelOption.TCP_NODELAY, true);
+            // 连接 RPC 服务器
+            ChannelFuture future = bootstrap.connect(addr).sync();
+            // 写入 RPC 请求数据并关闭连接
+            Channel channel = future.channel();
+            channel.writeAndFlush(request).sync();
+            channel.closeFuture().sync();
+            // 返回 RPC 响应对象
+//            synchronized (lock){
+//                lock.wait();
+//            }
+            return response;
+        } finally {
+            group.shutdownGracefully();
         }
     }
 

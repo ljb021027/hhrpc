@@ -32,7 +32,9 @@ public class RPCServer {
     }
 
     private ServerBootstrap bootstrap;
-    private EventLoopGroup group;
+
+    private EventLoopGroup bossGroup;
+    private EventLoopGroup workerGroup;
     private MessageCollector collector;
     private Channel serverChannel;
 
@@ -45,8 +47,10 @@ public class RPCServer {
     // 启动RPC服务
     public void start() throws InterruptedException {
         bootstrap = new ServerBootstrap();
-        group = new NioEventLoopGroup(ioThreads);
-        bootstrap.group(group);
+        bossGroup = new NioEventLoopGroup(ioThreads);
+        workerGroup = new NioEventLoopGroup(ioThreads);
+        //netty主从线程模型
+        bootstrap.group(bossGroup,workerGroup);
         collector = new MessageCollector(workerThreads);
         bootstrap.channel(NioServerSocketChannel.class).childHandler(new ChannelInitializer<SocketChannel>() {
             @Override
@@ -69,16 +73,18 @@ public class RPCServer {
 //                .option(ChannelOption.TCP_NODELAY, true) // 关闭小流合并，保证消息的及时性
 //                .childOption(ChannelOption.SO_KEEPALIVE, true); // 长时间没动静的链接自动关闭
         ChannelFuture sync = bootstrap.bind(this.ip, this.port).sync();
+        System.out.printf("server started @ %s:%d\n", ip, port);
         sync.channel().closeFuture().sync();
 //        serverChannel = bootstrap.bind(this.ip, this.port).channel();
-        System.out.printf("server started @ %s:%d\n", ip, port);
     }
 
     public void stop() {
         // 先关闭服务端套件字
         serverChannel.close();
         // 再斩断消息来源，停止io线程池
-        group.shutdownGracefully();
+        bossGroup.shutdownGracefully();
+        workerGroup.shutdownGracefully();
+
         // 最后停止业务线程
         collector.closeGracefully();
     }

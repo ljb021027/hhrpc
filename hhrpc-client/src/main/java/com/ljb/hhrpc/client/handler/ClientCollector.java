@@ -1,6 +1,7 @@
 package com.ljb.hhrpc.client.handler;
 
 import com.ljb.hhrpc.common.bean.RPCRequest;
+import com.ljb.hhrpc.common.bean.RPCResponse;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -15,6 +16,7 @@ import java.util.concurrent.Callable;
 public class ClientCollector extends ChannelInboundHandlerAdapter implements Callable {
 
     private RPCRequest request;
+    private RPCResponse response;
 
     private ChannelHandlerContext context;
 
@@ -35,8 +37,8 @@ public class ClientCollector extends ChannelInboundHandlerAdapter implements Cal
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         System.out.println("read a message");
-        request =(RPCRequest) msg;
-        notify();
+        response = (RPCResponse) msg;
+        request.notify();
     }
 
     @Override
@@ -54,7 +56,11 @@ public class ClientCollector extends ChannelInboundHandlerAdapter implements Cal
     @Override
     public Object call() throws Exception {
         context.writeAndFlush(request);
-        wait();
-        return result;
+        request.wait();
+        return response;
+    }
+
+    void setRequest(RPCRequest request) {
+        this.request = request;
     }
 }

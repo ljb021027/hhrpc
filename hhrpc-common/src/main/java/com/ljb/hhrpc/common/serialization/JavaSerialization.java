@@ -31,7 +31,6 @@ public class JavaSerialization {
             oos.writeObject(obj);
             oos.flush();
             oos.close();
-            System.out.println(os.toByteArray().length);
             return os.toByteArray();
         } catch (IOException e) {
             e.printStackTrace();

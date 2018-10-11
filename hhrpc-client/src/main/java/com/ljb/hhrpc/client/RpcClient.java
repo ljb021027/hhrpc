@@ -1,6 +1,8 @@
 package com.ljb.hhrpc.client;
 
+import com.ljb.hhrpc.client.handler.NettyHandler;
 import com.ljb.hhrpc.common.bean.RPCRequest;
+import com.ljb.hhrpc.common.bean.RPCResponse;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -26,8 +28,9 @@ public class RpcClient {
                         request.setMethodName(method.getName());
                         request.setParameterTypes(method.getParameterTypes());
                         request.setArgs(args);
-
-
+                        NettyHandler nettyHandler = new NettyHandler(addr);
+                        RPCResponse response = nettyHandler.send(request);
+                        return response.getResult();
                     }
                 });
 
