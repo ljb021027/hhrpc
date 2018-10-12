@@ -16,18 +16,36 @@
         <module>hhrpc-common</module>
     </modules>
 
+    <properties>
+        <version.netty>4.1.16.Final</version.netty>
+        <version.zookeeper>3.4.6</version.zookeeper>
+        <version.zkclient>0.8</version.zkclient>
+        <version.fastjson>1.2.7</version.fastjson>
+    </properties>
+
     <dependencyManagement>
         <dependencies>
             <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-all</artifactId>
-                <version>4.1.16.Final</version>
+                <version>${version.netty}</version>
             </dependency>
-
+            <!-- ZooKeeper -->
+            <dependency>
+                <groupId>org.apache.zookeeper</groupId>
+                <artifactId>zookeeper</artifactId>
+                <version>${version.zookeeper}</version>
+            </dependency>
+            <!-- ZkClient -->
+            <dependency>
+                <groupId>com.101tec</groupId>
+                <artifactId>zkclient</artifactId>
+                <version>${version.zkclient}</version>
+            </dependency>
             <dependency>
                 <groupId>com.alibaba</groupId>
                 <artifactId>fastjson</artifactId>
-                <version>1.2.7</version>
+                <version>${version.fastjson}</version>
             </dependency>
         </dependencies>
 

@@ -16,30 +16,51 @@ import java.net.InetSocketAddress;
  * @author liujiabei
  * @since 2018/10/8
  */
-public class NettyHandler extends SimpleChannelInboundHandler<RPCResponse> {
+public class NettyHandler extends ChannelInboundHandlerAdapter {
 
     private final InetSocketAddress addr;
 
     private RPCResponse response;
 
+    public static Object lock = new Object();
 
-    public Object lock = new Object();
-
-    @Override
-    public void channelRead0(ChannelHandlerContext ctx, RPCResponse response) throws Exception {
-        this.response = response;
-    }
+    private ChannelHandlerContext context;
 
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        ctx.close();
+    public void channelActive(ChannelHandlerContext ctx) {
+        System.out.println("client channelActive");
+        this.context = ctx;
     }
+
+
+    @Override
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+        System.out.println("client read msg");
+        this.response = (RPCResponse) msg;
+        synchronized (lock){
+            lock.notify();
+        }
+    }
+
 
     public NettyHandler(final InetSocketAddress inetSocketAddress) {
         addr = inetSocketAddress;
+        new Thread(() -> {
+            try {
+                initChannl();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }).start();
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        System.out.println("111");
     }
 
-    public RPCResponse send(RPCRequest request) throws Exception {
+    private void initChannl() throws InterruptedException {
         EventLoopGroup group = new NioEventLoopGroup();
         try {
             // 创建并初始化 Netty 客户端 Bootstrap 对象
@@ -60,16 +81,25 @@ public class NettyHandler extends SimpleChannelInboundHandler<RPCResponse> {
             ChannelFuture future = bootstrap.connect(addr).sync();
             // 写入 RPC 请求数据并关闭连接
             Channel channel = future.channel();
-            channel.writeAndFlush(request).sync();
+//            channel.writeAndFlush(request).sync();
             channel.closeFuture().sync();
             // 返回 RPC 响应对象
 //            synchronized (lock){
 //                lock.wait();
 //            }
-            return response;
+
         } finally {
             group.shutdownGracefully();
         }
+    }
+
+    public RPCResponse send(RPCRequest request) throws Exception {
+        this.context.channel().writeAndFlush(request);
+        synchronized (lock) {
+            lock.wait();
+        }
+        return response;
+
     }
 
 }

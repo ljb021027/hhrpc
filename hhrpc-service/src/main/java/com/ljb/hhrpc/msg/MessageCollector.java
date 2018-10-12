@@ -2,7 +2,6 @@ package com.ljb.hhrpc.msg;
 
 import com.ljb.hhrpc.common.bean.RPCRequest;
 import com.ljb.hhrpc.common.bean.RPCResponse;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -93,7 +92,7 @@ public class MessageCollector extends ChannelInboundHandlerAdapter {
         RPCResponse response = new RPCResponse();
         response.setResult(result);
         response.setRequestId(request.getRequestId());
-        ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE);
+        ctx.writeAndFlush(response);
     }
 
     @Override
