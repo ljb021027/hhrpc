@@ -14,9 +14,11 @@
         <module>hhrpc-service</module>
         <module>hhrpc-client</module>
         <module>hhrpc-common</module>
+        <module>hhrpc-config</module>
     </modules>
 
     <properties>
+        <spring_version>4.3.16.RELEASE</spring_version>
         <version.netty>4.1.16.Final</version.netty>
         <version.zookeeper>3.4.6</version.zookeeper>
         <version.zkclient>0.8</version.zkclient>
@@ -25,6 +27,13 @@
 
     <dependencyManagement>
         <dependencies>
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-framework-bom</artifactId>
+                <version>${spring_version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
             <dependency>
                 <groupId>io.netty</groupId>
                 <artifactId>netty-all</artifactId>

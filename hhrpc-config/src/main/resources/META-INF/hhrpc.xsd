@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://www.ljb.com/schema/hhrpc"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:beans="http://www.springframework.org/schema/beans"
+            xmlns:tool="http://www.springframework.org/schema/tool"
+            targetNamespace="http://www.ljb.com/schema/hhrpc"
+            elementFormDefault="qualified"
+            attributeFormDefault="unqualified" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="http://www.springframework.org/schema/tool http://www.springframework.org/schema/tool/spring-tool.xsd">
+
+    <xsd:import namespace="http://www.springframework.org/schema/beans"/>
+    <xsd:import namespace="http://www.springframework.org/schema/beans"/>
+    <xsd:import namespace="http://www.springframework.org/schema/tool"/>
+
+    <xsd:complexType name="serviceType">
+        <xsd:attribute name="interfaceName" type="xsd:string" use="optional" default="">
+            <xsd:annotation>
+                <xsd:documentation>
+                    <![CDATA[ The exclusive id. ]]></xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="implName" type="xsd:string" use="optional" default="">
+            <xsd:annotation>
+                <xsd:documentation><![CDATA[ The method invoke timeout. ]]></xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+    </xsd:complexType>
+
+
+    <xsd:element name="service" type="serviceType">
+        <xsd:annotation>
+            <xsd:documentation><![CDATA[ Export service default config ]]></xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+</xsd:schema>
