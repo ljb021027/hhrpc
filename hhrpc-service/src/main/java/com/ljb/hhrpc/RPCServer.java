@@ -2,10 +2,13 @@ package com.ljb.hhrpc;
 
 import com.ljb.hhrpc.common.bean.RPCRequest;
 import com.ljb.hhrpc.common.bean.RPCResponse;
+import com.ljb.hhrpc.common.bean.ServiceInfo;
+import com.ljb.hhrpc.common.bean.URL;
 import com.ljb.hhrpc.common.codes.RPCDecoder;
 import com.ljb.hhrpc.common.codes.RPCEncoder;
 import com.ljb.hhrpc.msg.MessageCollector;
 import com.ljb.hhrpc.msg.MessageRegistry;
+import com.ljb.hhrpc.registry.RegistryFactory;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -41,6 +44,9 @@ public class RPCServer {
     // 注册服务的快捷方式
     public RPCServer service(Class serviceInterface, Class<?> reqClass) {
         MessageRegistry.register(serviceInterface.getName(), reqClass);
+        RegistryFactory.getRegistry().register(new ServiceInfo(serviceInterface.getName()),
+                new URL(this.ip, this.port));
+
         return this;
     }
 
@@ -50,7 +56,7 @@ public class RPCServer {
         bossGroup = new NioEventLoopGroup(ioThreads);
         workerGroup = new NioEventLoopGroup(ioThreads);
         //netty主从线程模型
-        bootstrap.group(bossGroup,workerGroup);
+        bootstrap.group(bossGroup, workerGroup);
         collector = new MessageCollector(workerThreads);
         bootstrap.channel(NioServerSocketChannel.class).childHandler(new ChannelInitializer<SocketChannel>() {
             @Override

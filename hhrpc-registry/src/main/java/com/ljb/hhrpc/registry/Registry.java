@@ -1,6 +1,7 @@
 package com.ljb.hhrpc.registry;
 
 
+import com.ljb.hhrpc.common.bean.ServiceInfo;
 import com.ljb.hhrpc.common.bean.URL;
 
 /**
@@ -9,9 +10,9 @@ import com.ljb.hhrpc.common.bean.URL;
  */
 public interface Registry {
 
-    void register(URL url);
+    void register(ServiceInfo info, URL url);
 
-    void unRegister(URL url);
+    void unRegister(ServiceInfo url);
 
-    URL discover(URL url);
+    URL discover(ServiceInfo info);
 }

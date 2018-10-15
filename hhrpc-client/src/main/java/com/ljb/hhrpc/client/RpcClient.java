@@ -3,9 +3,10 @@ package com.ljb.hhrpc.client;
 import com.ljb.hhrpc.client.handler.NettyHandler;
 import com.ljb.hhrpc.common.bean.RPCRequest;
 import com.ljb.hhrpc.common.bean.RPCResponse;
+import com.ljb.hhrpc.common.bean.ServiceInfo;
+import com.ljb.hhrpc.common.bean.URL;
+import com.ljb.hhrpc.registry.RegistryFactory;
 
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.net.InetSocketAddress;
 import java.util.UUID;
@@ -16,22 +17,23 @@ import java.util.UUID;
  */
 public class RpcClient {
 
-    public static <T> T getRemote(Class<T> clazz, final InetSocketAddress addr) {
+    public static <T> T getRemote(final Class<T> clazz, final InetSocketAddress addr) {
 
         return (T) Proxy.newProxyInstance(clazz.getClassLoader(), new Class[]{clazz},
-                new InvocationHandler() {
-                    @Override
-                    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                        RPCRequest request = new RPCRequest();
-                        request.setRequestId(UUID.randomUUID().toString());
-                        request.setClassName(clazz.getName());
-                        request.setMethodName(method.getName());
-                        request.setParameterTypes(method.getParameterTypes());
-                        request.setArgs(args);
-                        NettyHandler nettyHandler = new NettyHandler(addr);
-                        RPCResponse response = nettyHandler.send(request);
-                        return response.getResult();
-                    }
+                (proxy, method, args) -> {
+                    RPCRequest request = new RPCRequest();
+                    request.setRequestId(UUID.randomUUID().toString());
+                    request.setClassName(clazz.getName());
+                    request.setMethodName(method.getName());
+                    request.setParameterTypes(method.getParameterTypes());
+                    request.setArgs(args);
+
+                    URL discover = RegistryFactory.getRegistry().discover(new ServiceInfo(clazz.getName()));
+
+                    InetSocketAddress addr1 = new InetSocketAddress(discover.getHost(), discover.getPort());
+                    NettyHandler nettyHandler = new NettyHandler(addr1);
+                    RPCResponse response = nettyHandler.send(request);
+                    return response.getResult();
                 });
 
     }
