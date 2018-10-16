@@ -29,7 +29,7 @@ public abstract class AbsRegistry implements Registry {
     @Override
     public URL discover(ServiceInfo info) {
         List<URL> urls = this.urlCache.get(info);
-        if (urls.isEmpty()) {
+        if (urls == null || urls.isEmpty()) {
             urls = initUrlCache(info);
             putUrlCache(info, urls);
         }

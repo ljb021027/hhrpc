@@ -24,7 +24,7 @@ public class Test {
 //                        e.printStackTrace();
 //                    }
 
-                    RPCServer rpcServer = new RPCServer("localhost", 18888, 10, 10);
+                    RPCServer rpcServer = new RPCServer("localhost", 18889, 10, 10);
                     rpcServer.service(HelloService.class, HelloServiceImpl.class);
                     try {
                         rpcServer.start();

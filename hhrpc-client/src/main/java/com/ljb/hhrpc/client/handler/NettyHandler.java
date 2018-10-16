@@ -37,7 +37,7 @@ public class NettyHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         System.out.println("client read msg");
         this.response = (RPCResponse) msg;
-        synchronized (lock){
+        synchronized (lock) {
             lock.notify();
         }
     }
@@ -65,6 +65,8 @@ public class NettyHandler extends ChannelInboundHandlerAdapter {
         try {
             // 创建并初始化 Netty 客户端 Bootstrap 对象
             Bootstrap bootstrap = new Bootstrap();
+            bootstrap.option(ChannelOption.SO_KEEPALIVE, true);
+            bootstrap.option(ChannelOption.TCP_NODELAY, true);
             bootstrap.group(group);
             bootstrap.channel(NioSocketChannel.class);
             bootstrap.handler(new ChannelInitializer<SocketChannel>() {
