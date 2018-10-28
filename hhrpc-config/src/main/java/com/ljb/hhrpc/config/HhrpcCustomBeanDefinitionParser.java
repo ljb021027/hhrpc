@@ -4,10 +4,9 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
-import org.springframework.util.StringUtils;
 import org.w3c.dom.Element;
 
-import java.lang.reflect.Method;
+import java.lang.reflect.Field;
 
 /**
  * @author liujiabei
@@ -37,40 +36,34 @@ public class HhrpcCustomBeanDefinitionParser implements BeanDefinitionParser {
      * @return
      */
     private static BeanDefinition parse(Element element, ParserContext parserContext, Class<?> beanClass, boolean required) {
-        for (Method method : beanClass.getMethods()) {
-            String name = method.getName();
-            System.out.println(name);
-        }
-
-
-        String id = element.getAttribute("id");
-        String timeout = element.getAttribute("timeout");
-        String retries = element.getAttribute("retries");
-        String actives = element.getAttribute("actives");
-
-        if (!StringUtils.isEmpty(id)) {
-            // 重复spring bean校验
-            if (parserContext.getRegistry().containsBeanDefinition(id)) {
-                throw new IllegalStateException("Duplicate spring bean id " + id);
-            }
-        } else {
-            throw new IllegalStateException("spring bean id can not be null");
-        }
 
         // 把bean封装成RootBeanDefinition对象，RootBeanDefinition继承了BeanDefinition
         RootBeanDefinition beanDefinition = new RootBeanDefinition();
         beanDefinition.setBeanClass(beanClass);
         beanDefinition.setLazyInit(false);// 设置这个bean是否延迟初始化，false-启动时就初始化
-        beanDefinition.getPropertyValues().addPropertyValue("id", id);
-        if (!StringUtils.isEmpty(timeout)) {
-            beanDefinition.getPropertyValues().addPropertyValue("timeout", timeout);
+
+        String id = element.getAttribute("id");
+        if (id.isEmpty()) {
+            String interfaceName = element.getAttribute("interfaceName");
+            id = interfaceName;
         }
-        if (!StringUtils.isEmpty(retries)) {
-            beanDefinition.getPropertyValues().addPropertyValue("retries", retries);
+
+        for (Field field : beanClass.getDeclaredFields()) {
+            field.setAccessible(true);
+            String name = field.getName();
+            String value = element.getAttribute(name);
+            beanDefinition.getPropertyValues().addPropertyValue(name, value);
         }
-        if (!StringUtils.isEmpty(actives)) {
-            beanDefinition.getPropertyValues().addPropertyValue("actives", actives);
-        }
+
+
+//        if (!StringUtils.isEmpty(id)) {
+//            // 重复spring bean校验
+//            if (parserContext.getRegistry().containsBeanDefinition(id)) {
+//                throw new IllegalStateException("Duplicate spring bean id " + id);
+//            }
+//        } else {
+//            throw new IllegalStateException("spring bean id can not be null");
+//        }
 
         // 把RootBeanDefinition bean对象注册到spring容器中
         parserContext.getRegistry().registerBeanDefinition(id, beanDefinition);
