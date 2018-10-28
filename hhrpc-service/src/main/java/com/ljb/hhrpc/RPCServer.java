@@ -10,7 +10,10 @@ import com.ljb.hhrpc.msg.MessageCollector;
 import com.ljb.hhrpc.msg.MessageRegistry;
 import com.ljb.hhrpc.registry.RegistryFactory;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.*;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelPipeline;
+import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
@@ -39,7 +42,6 @@ public class RPCServer {
     private EventLoopGroup bossGroup;
     private EventLoopGroup workerGroup;
     private MessageCollector collector;
-    private Channel serverChannel;
 
     // 注册服务的快捷方式
     public RPCServer service(Class serviceInterface, Class<?> reqClass) {
@@ -80,13 +82,16 @@ public class RPCServer {
 //                .childOption(ChannelOption.SO_KEEPALIVE, true); // 长时间没动静的链接自动关闭
         ChannelFuture sync = bootstrap.bind(this.ip, this.port).sync();
         System.out.printf("server started @ %s:%d\n", ip, port);
-        sync.channel().closeFuture().sync();
+        String key = this.ip + ":" + this.port;
+        synchronized (key) {
+            NettyChannelCache.addChannel(this.ip, this.port, sync.channel());
+        }
+//        sync.channel().closeFuture().sync();
 //        serverChannel = bootstrap.bind(this.ip, this.port).channel();
     }
 
     public void stop() {
         // 先关闭服务端套件字
-        serverChannel.close();
         // 再斩断消息来源，停止io线程池
         bossGroup.shutdownGracefully();
         workerGroup.shutdownGracefully();
