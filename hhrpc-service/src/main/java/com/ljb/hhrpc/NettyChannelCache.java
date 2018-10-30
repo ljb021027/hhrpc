@@ -20,9 +20,19 @@ public class NettyChannelCache {
         return channelMap.get(inetHost + ":" + inetPort);
     }
 
+    public static void removeChannel(String addr) {
+
+        channelMap.remove(addr);
+    }
+
     public static Channel addChannel(String inetHost, int inetPort, Channel channel) {
 
         return channelMap.put(inetHost + ":" + inetPort, channel);
+    }
+
+    public static Channel addChannel(String addr, Channel channel) {
+
+        return channelMap.put(addr, channel);
     }
 
 }

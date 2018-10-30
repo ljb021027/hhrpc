@@ -54,37 +54,37 @@ public class RPCServer {
 
     // 启动RPC服务
     public void start() throws InterruptedException {
-        bootstrap = new ServerBootstrap();
-        bossGroup = new NioEventLoopGroup(ioThreads);
-        workerGroup = new NioEventLoopGroup(ioThreads);
-        //netty主从线程模型
-        bootstrap.group(bossGroup, workerGroup);
-        collector = new MessageCollector(workerThreads);
-        bootstrap.channel(NioServerSocketChannel.class).childHandler(new ChannelInitializer<SocketChannel>() {
-            @Override
-            public void initChannel(SocketChannel ch) throws Exception {
-                ChannelPipeline pipe = ch.pipeline();
-                // 如果客户端60秒没有任何请求，就关闭客户端链接
-                pipe.addLast(new ReadTimeoutHandler(60));
-                pipe.addLast(new RPCEncoder(RPCResponse.class));
-                pipe.addLast(new RPCDecoder(RPCRequest.class));
+        String key = this.ip + ":" + this.port;
+        synchronized (key) {
+            bootstrap = new ServerBootstrap();
+            bossGroup = new NioEventLoopGroup(ioThreads);
+            workerGroup = new NioEventLoopGroup(ioThreads);
+            //netty主从线程模型
+            bootstrap.group(bossGroup, workerGroup);
+            collector = new MessageCollector(workerThreads);
+            bootstrap.channel(NioServerSocketChannel.class).childHandler(new ChannelInitializer<SocketChannel>() {
+                @Override
+                public void initChannel(SocketChannel ch) throws Exception {
+                    ChannelPipeline pipe = ch.pipeline();
+                    // 如果客户端60秒没有任何请求，就关闭客户端链接
+                    pipe.addLast(new ReadTimeoutHandler(60));
+                    pipe.addLast(new RPCEncoder(RPCResponse.class));
+                    pipe.addLast(new RPCDecoder(RPCRequest.class));
 //                // 挂上解码器
 //                pipe.addLast(new MessageDecoder());
 //                // 挂上编码器
 //                pipe.addLast(new MessageEncoder());
-                // 将业务处理器放在最后
-                pipe.addLast(collector);
-            }
-        });
+                    // 将业务处理器放在最后
+                    pipe.addLast(collector);
+                }
+            });
 //        bootstrap.option(ChannelOption.SO_BACKLOG, 100)  // 客户端套件字接受队列大小
 //                .option(ChannelOption.SO_REUSEADDR, true) // reuse addr，避免端口冲突
 //                .option(ChannelOption.TCP_NODELAY, true) // 关闭小流合并，保证消息的及时性
 //                .childOption(ChannelOption.SO_KEEPALIVE, true); // 长时间没动静的链接自动关闭
-        ChannelFuture sync = bootstrap.bind(this.ip, this.port).sync();
-        System.out.printf("server started @ %s:%d\n", ip, port);
-        String key = this.ip + ":" + this.port;
-        synchronized (key) {
-            NettyChannelCache.addChannel(this.ip, this.port, sync.channel());
+            ChannelFuture sync = bootstrap.bind(this.ip, this.port).sync();
+            System.out.printf("server started @ %s:%d\n", ip, port);
+
         }
 //        sync.channel().closeFuture().sync();
 //        serverChannel = bootstrap.bind(this.ip, this.port).channel();

@@ -1,12 +1,15 @@
 package com.ljb.hhrpc.msg;
 
+import com.ljb.hhrpc.NettyChannelCache;
 import com.ljb.hhrpc.common.bean.RPCRequest;
 import com.ljb.hhrpc.common.bean.RPCResponse;
+import com.ljb.hhrpc.common.util.NetUtils;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
 import java.lang.reflect.Method;
+import java.net.InetSocketAddress;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -55,12 +58,14 @@ public class MessageCollector extends ChannelInboundHandlerAdapter {
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         // 客户端来了一个新链接
         System.out.println("connection comes");
+        NettyChannelCache.addChannel(NetUtils.toAddressString((InetSocketAddress) ctx.channel().remoteAddress()), ctx.channel());
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         // 客户端走了一个
         System.out.println("connection leaves");
+        NettyChannelCache.removeChannel(NetUtils.toAddressString((InetSocketAddress) ctx.channel().remoteAddress()));
         ctx.close();
     }
 
