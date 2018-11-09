@@ -43,7 +43,7 @@ public class RPCServer {
     private EventLoopGroup workerGroup;
     private MessageCollector collector;
 
-    // 注册服务的快捷方式
+    // 注册服务
     public RPCServer service(Class serviceInterface, Class<?> reqClass) {
         MessageRegistry.register(serviceInterface.getName(), reqClass);
         RegistryFactory.getRegistry().register(new ServiceInfo(serviceInterface.getName()),

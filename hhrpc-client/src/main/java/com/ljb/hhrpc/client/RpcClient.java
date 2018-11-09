@@ -29,9 +29,7 @@ public class RpcClient {
                     request.setArgs(args);
 
                     URL discover = RegistryFactory.getRegistry().discover(new ServiceInfo(clazz.getName()));
-
-                    InetSocketAddress addr1 = new InetSocketAddress(discover.getHost(), discover.getPort());
-                    NettyHandler nettyHandler = new NettyHandler(addr1);
+                    NettyHandler nettyHandler = new NettyHandler(discover.getUniquePath());
                     RPCResponse response = nettyHandler.send(request);
                     return response.getResult();
                 });

@@ -4,13 +4,15 @@ import com.ljb.hhrpc.common.bean.RPCRequest;
 import com.ljb.hhrpc.common.bean.RPCResponse;
 import com.ljb.hhrpc.common.codes.RPCDecoder;
 import com.ljb.hhrpc.common.codes.RPCEncoder;
+import com.ljb.hhrpc.common.util.StringUtil;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 
-import java.net.InetSocketAddress;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author liujiabei
@@ -18,20 +20,20 @@ import java.net.InetSocketAddress;
  */
 public class NettyHandler extends ChannelInboundHandlerAdapter {
 
-    private final InetSocketAddress addr;
+    private static Map<String, Channel> channelMap = new ConcurrentHashMap<>();
+
+    private String addr;
+
+    private Channel channel;
 
     private RPCResponse response;
 
     public static Object lock = new Object();
 
-    private ChannelHandlerContext context;
-
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
         System.out.println("client channelActive");
-        this.context = ctx;
     }
-
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
@@ -43,21 +45,27 @@ public class NettyHandler extends ChannelInboundHandlerAdapter {
     }
 
 
-    public NettyHandler(final InetSocketAddress inetSocketAddress) {
-        addr = inetSocketAddress;
-        new Thread(() -> {
+    public NettyHandler(String addr) {
+
+        Channel channel = channelMap.get(addr);
+        if (channel == null) {
+           this.addr = addr;
             try {
                 initChannl();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-        }).start();
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        } else {
+
+            this.channel = channel;
         }
-        System.out.println("111");
+//        new Thread(() -> {
+//            try {
+//                initChannl();
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+//        }).start();
     }
 
     private void initChannl() throws InterruptedException {
@@ -80,9 +88,10 @@ public class NettyHandler extends ChannelInboundHandlerAdapter {
             });
             bootstrap.option(ChannelOption.TCP_NODELAY, true);
             // 连接 RPC 服务器
-            ChannelFuture future = bootstrap.connect(addr).sync();
+            ChannelFuture future = bootstrap.connect(StringUtil.getAddrByString(addr)).sync();
             // 写入 RPC 请求数据并关闭连接
             Channel channel = future.channel();
+            channelMap.putIfAbsent(addr, channel);
 //            channel.writeAndFlush(request).sync();
             channel.closeFuture().sync();
             // 返回 RPC 响应对象
@@ -96,7 +105,7 @@ public class NettyHandler extends ChannelInboundHandlerAdapter {
     }
 
     public RPCResponse send(RPCRequest request) throws Exception {
-        this.context.channel().writeAndFlush(request);
+        channel.writeAndFlush(request);
         synchronized (lock) {
             lock.wait();
         }
