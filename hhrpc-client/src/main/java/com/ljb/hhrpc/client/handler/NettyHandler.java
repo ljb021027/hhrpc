@@ -49,23 +49,18 @@ public class NettyHandler extends ChannelInboundHandlerAdapter {
 
         Channel channel = channelMap.get(addr);
         if (channel == null) {
-           this.addr = addr;
+            this.addr = addr;
+//            new Thread(() -> {
             try {
                 initChannl();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+//            }).start();
         } else {
 
             this.channel = channel;
         }
-//        new Thread(() -> {
-//            try {
-//                initChannl();
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
-//        }).start();
     }
 
     private void initChannl() throws InterruptedException {
@@ -91,9 +86,10 @@ public class NettyHandler extends ChannelInboundHandlerAdapter {
             ChannelFuture future = bootstrap.connect(StringUtil.getAddrByString(addr)).sync();
             // 写入 RPC 请求数据并关闭连接
             Channel channel = future.channel();
+            this.channel = channel;
             channelMap.putIfAbsent(addr, channel);
 //            channel.writeAndFlush(request).sync();
-            channel.closeFuture().sync();
+            channel.closeFuture();
             // 返回 RPC 响应对象
 //            synchronized (lock){
 //                lock.wait();
@@ -105,6 +101,7 @@ public class NettyHandler extends ChannelInboundHandlerAdapter {
     }
 
     public RPCResponse send(RPCRequest request) throws Exception {
+        System.out.println("send:++");
         channel.writeAndFlush(request);
         synchronized (lock) {
             lock.wait();
