@@ -13,6 +13,7 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author liujiabei
@@ -83,13 +84,15 @@ public class NettyHandler extends ChannelInboundHandlerAdapter {
             });
             bootstrap.option(ChannelOption.TCP_NODELAY, true);
             // 连接 RPC 服务器
-            ChannelFuture future = bootstrap.connect(StringUtil.getAddrByString(addr)).sync();
-            // 写入 RPC 请求数据并关闭连接
-            Channel channel = future.channel();
-            this.channel = channel;
-            channelMap.putIfAbsent(addr, channel);
+            ChannelFuture future = bootstrap.connect(StringUtil.getAddrByString(addr));
+            boolean ret = future.awaitUninterruptibly(3000, TimeUnit.MILLISECONDS);
+            if (ret && future.isSuccess()) {
+                this.channel = future.channel();
+                channelMap.putIfAbsent(addr, channel);
+
+            }
 //            channel.writeAndFlush(request).sync();
-            channel.closeFuture();
+//            channel.closeFuture();
             // 返回 RPC 响应对象
 //            synchronized (lock){
 //                lock.wait();
@@ -101,8 +104,9 @@ public class NettyHandler extends ChannelInboundHandlerAdapter {
     }
 
     public RPCResponse send(RPCRequest request) throws Exception {
+        Thread.sleep(2000);
         System.out.println("send:++");
-        channel.writeAndFlush(request);
+        this.channel.writeAndFlush(request);
         synchronized (lock) {
             lock.wait();
         }

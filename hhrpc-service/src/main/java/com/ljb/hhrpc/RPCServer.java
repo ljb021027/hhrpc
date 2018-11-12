@@ -10,10 +10,7 @@ import com.ljb.hhrpc.msg.MessageCollector;
 import com.ljb.hhrpc.msg.MessageRegistry;
 import com.ljb.hhrpc.registry.RegistryFactory;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelPipeline;
-import io.netty.channel.EventLoopGroup;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
@@ -62,7 +59,14 @@ public class RPCServer {
             //netty主从线程模型
             bootstrap.group(bossGroup, workerGroup);
             collector = new MessageCollector(workerThreads);
-            bootstrap.channel(NioServerSocketChannel.class).childHandler(new ChannelInitializer<SocketChannel>() {
+            bootstrap.channel(NioServerSocketChannel.class)
+                    //保持连接数
+                    .option(ChannelOption.SO_BACKLOG, 128)
+                    //有数据立即发送
+                    .option(ChannelOption.TCP_NODELAY, true)
+                    //保持连接
+                    .childOption(ChannelOption.SO_KEEPALIVE, true)
+                    .childHandler(new ChannelInitializer<SocketChannel>() {
                 @Override
                 public void initChannel(SocketChannel ch) throws Exception {
                     ChannelPipeline pipe = ch.pipeline();
@@ -82,8 +86,10 @@ public class RPCServer {
 //                .option(ChannelOption.SO_REUSEADDR, true) // reuse addr，避免端口冲突
 //                .option(ChannelOption.TCP_NODELAY, true) // 关闭小流合并，保证消息的及时性
 //                .childOption(ChannelOption.SO_KEEPALIVE, true); // 长时间没动静的链接自动关闭
-            ChannelFuture sync = bootstrap.bind(this.ip, this.port).sync();
+            ChannelFuture channelFuture = bootstrap.bind(this.ip, this.port).sync();
             System.out.printf("server started @ %s:%d\n", ip, port);
+//            channelFuture.syncUninterruptibly();
+            channelFuture.channel().closeFuture().sync();
 
         }
 //        sync.channel().closeFuture().sync();
