@@ -8,7 +8,6 @@ import com.ljb.hhrpc.common.bean.URL;
 import com.ljb.hhrpc.registry.RegistryFactory;
 
 import java.lang.reflect.Proxy;
-import java.net.InetSocketAddress;
 import java.util.UUID;
 
 /**
@@ -17,7 +16,7 @@ import java.util.UUID;
  */
 public class RpcClient {
 
-    public static <T> T getRemote(final Class<T> clazz, final InetSocketAddress addr) {
+    public static <T> T getRemote(final Class<T> clazz) {
 
         return (T) Proxy.newProxyInstance(clazz.getClassLoader(), new Class[]{clazz},
                 (proxy, method, args) -> {

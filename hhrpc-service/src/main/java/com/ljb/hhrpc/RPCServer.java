@@ -67,29 +67,21 @@ public class RPCServer {
                     //保持连接
                     .childOption(ChannelOption.SO_KEEPALIVE, true)
                     .childHandler(new ChannelInitializer<SocketChannel>() {
-                @Override
-                public void initChannel(SocketChannel ch) throws Exception {
-                    ChannelPipeline pipe = ch.pipeline();
-                    // 如果客户端60秒没有任何请求，就关闭客户端链接
-                    pipe.addLast(new ReadTimeoutHandler(60));
-                    pipe.addLast(new RPCEncoder(RPCResponse.class));
-                    pipe.addLast(new RPCDecoder(RPCRequest.class));
-//                // 挂上解码器
-//                pipe.addLast(new MessageDecoder());
-//                // 挂上编码器
-//                pipe.addLast(new MessageEncoder());
-                    // 将业务处理器放在最后
-                    pipe.addLast(collector);
-                }
-            });
-//        bootstrap.option(ChannelOption.SO_BACKLOG, 100)  // 客户端套件字接受队列大小
-//                .option(ChannelOption.SO_REUSEADDR, true) // reuse addr，避免端口冲突
-//                .option(ChannelOption.TCP_NODELAY, true) // 关闭小流合并，保证消息的及时性
-//                .childOption(ChannelOption.SO_KEEPALIVE, true); // 长时间没动静的链接自动关闭
+                        @Override
+                        public void initChannel(SocketChannel ch) throws Exception {
+                            ChannelPipeline pipe = ch.pipeline();
+                            // 如果客户端60秒没有任何请求，就关闭客户端链接
+                            pipe.addLast(new ReadTimeoutHandler(60));
+                            pipe.addLast(new RPCEncoder(RPCResponse.class));
+                            pipe.addLast(new RPCDecoder(RPCRequest.class));
+                            // 将业务处理器放在最后
+                            pipe.addLast(collector);
+                        }
+                    });
             ChannelFuture channelFuture = bootstrap.bind(this.ip, this.port).sync();
             System.out.printf("server started @ %s:%d\n", ip, port);
 //            channelFuture.syncUninterruptibly();
-            channelFuture.channel().closeFuture().sync();
+//            channelFuture.channel().closeFuture().sync();
 
         }
 //        sync.channel().closeFuture().sync();
@@ -101,7 +93,6 @@ public class RPCServer {
         // 再斩断消息来源，停止io线程池
         bossGroup.shutdownGracefully();
         workerGroup.shutdownGracefully();
-
         // 最后停止业务线程
         collector.closeGracefully();
     }

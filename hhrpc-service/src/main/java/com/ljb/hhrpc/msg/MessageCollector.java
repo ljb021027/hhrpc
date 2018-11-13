@@ -71,7 +71,7 @@ public class MessageCollector extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        System.out.println("read a message");
+        System.out.println("read a message"+ctx.toString());
         // 用业务线程池处理消息
         this.executor.execute(() -> {
             try {

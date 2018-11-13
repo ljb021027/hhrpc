@@ -7,6 +7,7 @@ package com.ljb.hhrpc.demo;
 public class HelloServiceImpl implements HelloService {
     @Override
     public String sayHello(String name) {
+        System.out.println("接收到参数:" + name);
         return "hello" + name;
     }
 }
