@@ -33,14 +33,15 @@ public class NettyHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
         System.out.println("client channelActive");
+        channelMap.putIfAbsent(addr, ctx.channel());
     }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         System.out.println("client read msg");
         this.response = (RPCResponse) msg;
-        synchronized (lock) {
-            lock.notify();
+        synchronized (this) {
+            this.notifyAll();
         }
     }
 
@@ -58,7 +59,6 @@ public class NettyHandler extends ChannelInboundHandlerAdapter {
             }
 //            }).start();
         } else {
-
             this.channel = channel;
         }
     }
@@ -87,7 +87,6 @@ public class NettyHandler extends ChannelInboundHandlerAdapter {
 //            boolean ret = future.awaitUninterruptibly(3000, TimeUnit.MILLISECONDS);
 //            if (ret && future.isSuccess()) {
             this.channel = future.channel();
-            channelMap.putIfAbsent(addr, channel);
 //            }
 //            channel.writeAndFlush(request).sync();
 //            channel.closeFuture();
@@ -103,8 +102,8 @@ public class NettyHandler extends ChannelInboundHandlerAdapter {
     public RPCResponse send(RPCRequest request) throws Exception {
         System.out.println("send:");
         this.channel.writeAndFlush(request);
-        synchronized (lock) {
-            lock.wait();
+        synchronized (this) {
+            this.wait();
         }
         return response;
 

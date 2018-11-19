@@ -20,6 +20,7 @@ public class RpcClient {
 
         return (T) Proxy.newProxyInstance(clazz.getClassLoader(), new Class[]{clazz},
                 (proxy, method, args) -> {
+                    System.out.println("1111");
                     RPCRequest request = new RPCRequest();
                     request.setRequestId(UUID.randomUUID().toString());
                     request.setClassName(clazz.getName());
