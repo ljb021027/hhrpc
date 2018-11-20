@@ -1,9 +1,9 @@
-package com.ljb.hhrpc.msg;
+package com.ljb.hhrpc;
 
-import com.ljb.hhrpc.NettyChannelCache;
 import com.ljb.hhrpc.common.bean.RPCRequest;
 import com.ljb.hhrpc.common.bean.RPCResponse;
 import com.ljb.hhrpc.common.util.NetUtils;
+import com.ljb.hhrpc.registry.MessageRegistry;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -18,11 +18,11 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @since 2018/9/29
  */
 @ChannelHandler.Sharable
-public class MessageCollector extends ChannelInboundHandlerAdapter {
+public class NettyServer extends ChannelInboundHandlerAdapter {
     // 业务线程池
     private ThreadPoolExecutor executor;
 
-    public MessageCollector(int workerThreads) {
+    public NettyServer(int workerThreads) {
         // 业务队列最大1000，避免堆积
         // 如果子线程处理不过来，io线程也会加入处理业务逻辑(callerRunsPolicy)
         BlockingQueue<Runnable> queue = new ArrayBlockingQueue<>(1000);

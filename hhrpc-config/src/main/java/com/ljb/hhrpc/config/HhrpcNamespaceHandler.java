@@ -1,5 +1,7 @@
 package com.ljb.hhrpc.config;
 
+import com.ljb.hhrpc.config.client.ClientConfig;
+import com.ljb.hhrpc.config.registry.RegistryConfig;
 import com.ljb.hhrpc.config.service.ServiceConfig;
 import org.springframework.beans.factory.xml.NamespaceHandlerSupport;
 
@@ -12,5 +14,8 @@ public class HhrpcNamespaceHandler extends NamespaceHandlerSupport {
     public void init() {
 
         registerBeanDefinitionParser("service", new HhrpcCustomBeanDefinitionParser(ServiceConfig.class, true));
+        registerBeanDefinitionParser("client", new HhrpcCustomBeanDefinitionParser(ClientConfig.class, true));
+        registerBeanDefinitionParser("registry", new HhrpcCustomBeanDefinitionParser(RegistryConfig.class, true));
+
     }
 }

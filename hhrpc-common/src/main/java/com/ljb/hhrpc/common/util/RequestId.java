@@ -1,4 +1,4 @@
-package com.ljb.hhrpc.client;
+package com.ljb.hhrpc.common.util;
 
 import java.util.UUID;
 

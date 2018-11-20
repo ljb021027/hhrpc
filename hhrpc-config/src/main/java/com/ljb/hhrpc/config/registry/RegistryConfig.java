@@ -1,10 +1,12 @@
 package com.ljb.hhrpc.config.registry;
 
+import com.ljb.hhrpc.config.AbstractConfig;
+
 /**
  * @author liujiabei
  * @since 2018/10/15
  */
-public class RegistryConfig {
+public class RegistryConfig extends AbstractConfig {
 
     private String type;
 

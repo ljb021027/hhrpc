@@ -6,5 +6,10 @@
        http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
        http://www.ljb.com/schema/hhrpc
        http://www.ljb.com/schema/hhrpc.xsd">
-    <hhrpc:service interfaceName="com.11.11" implName="com.11.impl.11"/>
+    <hhrpc:service id="testservice" interfaceName="com.11.11" implName="com.11.impl.11"/>
+
+    <hhrpc:client id="testClient" interfaceName="com.11.impl.11"/>
+
+    <hhrpc:registry id="testRegistry" type="zookeeper" address="47.105.117.164:2181"/>
+
 </beans>

@@ -46,6 +46,8 @@ public class HhrpcCustomBeanDefinitionParser implements BeanDefinitionParser {
         if (id.isEmpty()) {
             String interfaceName = element.getAttribute("interfaceName");
             id = interfaceName;
+        } else {
+            beanDefinition.getPropertyValues().addPropertyValue("id", id);
         }
 
         for (Field field : beanClass.getDeclaredFields()) {

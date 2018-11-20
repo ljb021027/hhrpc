@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author liujiabei
  * @since 2018/10/8
  */
-public class NettyHandler extends ChannelInboundHandlerAdapter {
+public class NettyClient extends ChannelInboundHandlerAdapter {
 
     private static Map<String, Channel> channelMap = new ConcurrentHashMap<>();
     private static Map<String, RPCRequest> requestMap = new ConcurrentHashMap<>();
@@ -47,18 +47,16 @@ public class NettyHandler extends ChannelInboundHandlerAdapter {
     }
 
 
-    public NettyHandler(String addr) {
+    public NettyClient(String addr) {
 
         Channel channel = channelMap.get(addr);
         if (channel == null) {
             this.addr = addr;
-//            new Thread(() -> {
             try {
                 initChannl();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-//            }).start();
         } else {
             this.channel = channel;
         }
@@ -79,22 +77,13 @@ public class NettyHandler extends ChannelInboundHandlerAdapter {
                     ChannelPipeline pipeline = channel.pipeline();
                     pipeline.addLast(new RPCEncoder(RPCRequest.class)); // 编码 RPC 请求
                     pipeline.addLast(new RPCDecoder(RPCResponse.class)); // 解码 RPC 响应
-                    pipeline.addLast(NettyHandler.this); // 处理 RPC 响应
+                    pipeline.addLast(NettyClient.this); // 处理 RPC 响应
                 }
             });
             bootstrap.option(ChannelOption.TCP_NODELAY, true);
             // 连接 RPC 服务器
             ChannelFuture future = bootstrap.connect(StringUtil.getAddrByString(addr)).sync();
-//            boolean ret = future.awaitUninterruptibly(3000, TimeUnit.MILLISECONDS);
-//            if (ret && future.isSuccess()) {
             this.channel = future.channel();
-//            }
-//            channel.writeAndFlush(request).sync();
-//            channel.closeFuture();
-            // 返回 RPC 响应对象
-//            synchronized (lock){
-//                lock.wait();
-//            }
 
         } finally {
         }

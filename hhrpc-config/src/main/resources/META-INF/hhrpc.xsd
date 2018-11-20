@@ -13,6 +13,11 @@
     <xsd:import namespace="http://www.springframework.org/schema/tool"/>
 
     <xsd:complexType name="serviceType">
+        <xsd:attribute name="id" type="xsd:string" use="optional" default="">
+            <xsd:annotation>
+                <xsd:documentation><![CDATA[ The exclusive id. ]]></xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
         <xsd:attribute name="interfaceName" type="xsd:string" use="optional" default="">
             <xsd:annotation>
                 <xsd:documentation>
@@ -25,9 +30,48 @@
             </xsd:annotation>
         </xsd:attribute>
     </xsd:complexType>
-
-
     <xsd:element name="service" type="serviceType">
+        <xsd:annotation>
+            <xsd:documentation><![CDATA[ Export service default config ]]></xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:complexType name="clientType">
+        <xsd:attribute name="id" type="xsd:string" use="optional" default="">
+            <xsd:annotation>
+                <xsd:documentation><![CDATA[ The exclusive id. ]]></xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="interfaceName" type="xsd:string" use="optional" default="">
+            <xsd:annotation>
+                <xsd:documentation><![CDATA[ The method invoke timeout. ]]></xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+    </xsd:complexType>
+    <xsd:element name="client" type="clientType">
+        <xsd:annotation>
+            <xsd:documentation><![CDATA[ Export service default config ]]></xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:complexType name="registryType">
+        <xsd:attribute name="id" type="xsd:string" use="optional" default="">
+            <xsd:annotation>
+                <xsd:documentation><![CDATA[ The exclusive id. ]]></xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="type" type="xsd:string" use="optional" default="">
+            <xsd:annotation>
+                <xsd:documentation><![CDATA[ The exclusive id. ]]></xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="address" type="xsd:string" use="optional" default="">
+            <xsd:annotation>
+                <xsd:documentation><![CDATA[ The method invoke timeout. ]]></xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+    </xsd:complexType>
+    <xsd:element name="registry" type="registryType">
         <xsd:annotation>
             <xsd:documentation><![CDATA[ Export service default config ]]></xsd:documentation>
         </xsd:annotation>

@@ -6,8 +6,7 @@ import com.ljb.hhrpc.common.bean.ServiceInfo;
 import com.ljb.hhrpc.common.bean.URL;
 import com.ljb.hhrpc.common.codes.RPCDecoder;
 import com.ljb.hhrpc.common.codes.RPCEncoder;
-import com.ljb.hhrpc.msg.MessageCollector;
-import com.ljb.hhrpc.msg.MessageRegistry;
+import com.ljb.hhrpc.registry.MessageRegistry;
 import com.ljb.hhrpc.registry.RegistryFactory;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
@@ -38,7 +37,7 @@ public class RPCServer {
 
     private EventLoopGroup bossGroup;
     private EventLoopGroup workerGroup;
-    private MessageCollector collector;
+    private NettyServer collector;
 
     // 注册服务
     public RPCServer service(Class serviceInterface, Class<?> reqClass) {
@@ -58,7 +57,7 @@ public class RPCServer {
             workerGroup = new NioEventLoopGroup(ioThreads);
             //netty主从线程模型
             bootstrap.group(bossGroup, workerGroup);
-            collector = new MessageCollector(workerThreads);
+            collector = new NettyServer(workerThreads);
             bootstrap.channel(NioServerSocketChannel.class)
                     //保持连接数
                     .option(ChannelOption.SO_BACKLOG, 128)
