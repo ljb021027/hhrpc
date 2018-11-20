@@ -21,14 +21,12 @@ import java.util.concurrent.ConcurrentHashMap;
 public class NettyHandler extends ChannelInboundHandlerAdapter {
 
     private static Map<String, Channel> channelMap = new ConcurrentHashMap<>();
+    private static Map<String, RPCRequest> requestMap = new ConcurrentHashMap<>();
+    private static Map<String, RPCResponse> responseMap = new ConcurrentHashMap<>();
 
     private String addr;
 
     private Channel channel;
-
-    private RPCResponse response;
-
-    public Object lock = new Object();
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
@@ -38,11 +36,14 @@ public class NettyHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        System.out.println("client read msg");
-        this.response = (RPCResponse) msg;
-        synchronized (this) {
-            this.notifyAll();
+        RPCResponse response = (RPCResponse) msg;
+        responseMap.put(response.getRequestId(), response);
+        System.out.println("client read msg" + response.toString() + this.toString());
+        RPCRequest request = requestMap.get(response.getRequestId());
+        synchronized (request) {
+            request.notifyAll();
         }
+
     }
 
 
@@ -100,11 +101,14 @@ public class NettyHandler extends ChannelInboundHandlerAdapter {
     }
 
     public RPCResponse send(RPCRequest request) throws Exception {
-        System.out.println("send:");
+        System.out.println("send:" + this.toString());
         this.channel.writeAndFlush(request);
-        synchronized (this) {
-            this.wait();
+        requestMap.put(request.getRequestId(), request);
+        synchronized (request) {
+            request.wait();
         }
+        requestMap.remove(request.getRequestId());
+        RPCResponse response = responseMap.remove(request.getRequestId());
         return response;
 
     }
