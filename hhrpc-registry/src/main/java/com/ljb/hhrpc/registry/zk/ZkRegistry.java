@@ -15,13 +15,19 @@ import java.util.stream.Collectors;
  */
 public class ZkRegistry extends AbsRegistry {
 
-    private final ZkClient zkClient;
+    private static volatile ZkClient zkClient;
 
     public ZkRegistry(String zkAddress) {
         if (zkAddress == "") {
             zkAddress = "localhost:2181";
         }
-        zkClient = new ZkClient(zkAddress, 5000, 1000);
+        if (zkClient == null) {
+            synchronized (ZkRegistry.class) {
+                if (zkClient == null) {
+                    zkClient = new ZkClient(zkAddress, 5000, 1000);
+                }
+            }
+        }
         boolean exists = zkClient.exists(ZkConstant.ROOT_PATH);
         if (!exists) {
             zkClient.createPersistent(ZkConstant.ROOT_PATH);

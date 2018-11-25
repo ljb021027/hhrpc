@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>hhrpc-parent</artifactId>
+        <groupId>com.ljb.hhrpc</groupId>
+        <version>0.0.1-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>hhrpc-all</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.ljb.hhrpc</groupId>
+            <artifactId>hhrpc-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <artifactId>hhrpc-client</artifactId>
+            <groupId>com.ljb.hhrpc</groupId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <artifactId>hhrpc-config</artifactId>
+            <groupId>com.ljb.hhrpc</groupId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <artifactId>hhrpc-registry</artifactId>
+            <groupId>com.ljb.hhrpc</groupId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <artifactId>hhrpc-service</artifactId>
+            <groupId>com.ljb.hhrpc</groupId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <artifactId>hhrpc-client</artifactId>
+            <groupId>com.ljb.hhrpc</groupId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>1.4</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <createSourcesJar>true</createSourcesJar>
+                            <promoteTransitiveDependencies>false</promoteTransitiveDependencies>
+                            <artifactSet>
+                                <includes>
+                                    <include>com.ljb.hhrpc:hhrpc-client</include>
+                                    <include>com.ljb.hhrpc:hhrpc-common</include>
+                                    <include>com.ljb.hhrpc:hhrpc-config</include>
+                                    <include>com.ljb.hhrpc:hhrpc-registry</include>
+                                    <include>com.ljb.hhrpc:hhrpc-service</include>
+                                </includes>
+                            </artifactSet>
+                            <transformers>
+
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
