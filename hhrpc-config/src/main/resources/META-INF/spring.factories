@@ -1,0 +1,2 @@
+org.springframework.context.ApplicationContextInitializer=com.ljb.hhrpc.config.initializer.HhrpcApplicationContextInitializer
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=com.ljb.hhrpc.config.initializer.HhrpcBootstrap

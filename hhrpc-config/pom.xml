@@ -13,6 +13,16 @@
 
     <dependencies>
         <dependency>
+            <groupId>com.ljb.hhrpc</groupId>
+            <artifactId>hhrpc-service</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.ljb.hhrpc</groupId>
+            <artifactId>hhrpc-client</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-beans</artifactId>
         </dependency>
