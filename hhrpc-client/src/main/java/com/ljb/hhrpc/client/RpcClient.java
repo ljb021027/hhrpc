@@ -6,32 +6,39 @@ import com.ljb.hhrpc.common.bean.RPCResponse;
 import com.ljb.hhrpc.common.bean.ServiceInfo;
 import com.ljb.hhrpc.common.bean.URL;
 import com.ljb.hhrpc.common.util.RequestId;
-import com.ljb.hhrpc.registry.RegistryFactory;
+import com.ljb.hhrpc.registry.Registry;
 
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
 /**
  * @author liujiabei
  * @since 2018/9/29
  */
-public class RpcClient {
+public class RpcClient implements InvocationHandler {
 
-    public static <T> T getRemote(final Class<T> clazz) {
+    private Class<?> interfaceClass;
 
-        return (T) Proxy.newProxyInstance(clazz.getClassLoader(), new Class[]{clazz},
-                (proxy, method, args) -> {
-                    RPCRequest request = new RPCRequest();
-                    request.setRequestId(RequestId.next());
-                    request.setClassName(clazz.getName());
-                    request.setMethodName(method.getName());
-                    request.setParameterTypes(method.getParameterTypes());
-                    request.setArgs(args);
+    public static Registry registry;
 
-                    URL discover = RegistryFactory.getRegistry().discover(new ServiceInfo(clazz.getName()));
-                    NettyClient nettyClient = new NettyClient(discover.getUniquePath());
-                    RPCResponse response = nettyClient.send(request);
-                    return response.getResult();
-                });
+    public Object bind(Class<?> cls) {
+        this.interfaceClass = cls;
+        return Proxy.newProxyInstance(cls.getClassLoader(), new Class[] {interfaceClass}, this);
+    }
 
+    @Override
+    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        RPCRequest request = new RPCRequest();
+        request.setRequestId(RequestId.next());
+        request.setClassName(interfaceClass.getName());
+        request.setMethodName(method.getName());
+        request.setParameterTypes(method.getParameterTypes());
+        request.setArgs(args);
+
+        URL discover = registry.discover(new ServiceInfo(interfaceClass.getName()));
+        NettyClient nettyClient = new NettyClient(discover.getUniquePath());
+        RPCResponse response = nettyClient.send(request);
+        return response.getResult();
     }
 }

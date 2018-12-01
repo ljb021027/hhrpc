@@ -17,14 +17,6 @@ public class ServiceInfo {
         return serviceName;
     }
 
-    public String getServiceName() {
-        return serviceName;
-    }
-
-    public void setServiceName(String serviceName) {
-        this.serviceName = serviceName;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

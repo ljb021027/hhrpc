@@ -14,6 +14,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public abstract class AbsRegistry implements Registry {
 
+    protected String addr;
+
     protected Map<ServiceInfo, List<URL>> urlCache = new ConcurrentHashMap<>();
 
     protected abstract List<URL> initUrlCache(ServiceInfo info);
@@ -36,10 +38,17 @@ public abstract class AbsRegistry implements Registry {
         return this.banlancing.getOne(urls);
     }
 
+    @Override
+    public String getAddr() {
+        return addr;
+    }
+
     private Banlancing banlancing;
 
     public Registry setBanlancing(Banlancing banlancing) {
         this.banlancing = banlancing;
         return this;
     }
+
+
 }

@@ -6,7 +6,7 @@ package com.ljb.hhrpc.registry.zk;
  */
 public class ZkRegistryFactory {
 
-    public static ZkRegistry getRegistry() {
-        return new ZkRegistry("47.105.117.164:2181");
+    public static ZkRegistry getRegistry(String addr) {
+        return new ZkRegistry(addr);
     }
 }

@@ -17,5 +17,6 @@ public class ClientConfig extends AbstractConfig {
     public void setInterfaceName(String interfaceName) {
         this.interfaceName = interfaceName;
     }
+
 }
 

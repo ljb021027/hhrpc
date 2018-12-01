@@ -7,7 +7,7 @@ import com.ljb.hhrpc.common.bean.URL;
 import com.ljb.hhrpc.common.codes.RPCDecoder;
 import com.ljb.hhrpc.common.codes.RPCEncoder;
 import com.ljb.hhrpc.registry.MessageRegistry;
-import com.ljb.hhrpc.registry.RegistryFactory;
+import com.ljb.hhrpc.registry.Registry;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -21,14 +21,14 @@ import io.netty.handler.timeout.ReadTimeoutHandler;
  */
 public class RPCServer {
 
-    private String ip;
-    private int port;
+    private Registry registry;
+    private String addr;
     private int ioThreads; // 用来处理网络流的读写线程
     private int workerThreads; // 用于业务处理的计算线程
 
-    public RPCServer(String ip, int port, int ioThreads, int workerThreads) {
-        this.ip = ip;
-        this.port = port;
+    public RPCServer(Registry registry,int ioThreads, int workerThreads) {
+        this.registry = registry;
+        this.addr = registry.getAddr();
         this.ioThreads = ioThreads;
         this.workerThreads = workerThreads;
     }
@@ -42,15 +42,14 @@ public class RPCServer {
     // 注册服务
     public RPCServer service(Class serviceInterface, Class<?> reqClass) {
         MessageRegistry.register(serviceInterface.getName(), reqClass);
-        RegistryFactory.getRegistry().register(new ServiceInfo(serviceInterface.getName()),
-                new URL(this.ip, this.port));
-
+        this.registry.register(new ServiceInfo(serviceInterface.getName()),
+                new URL(addr));
         return this;
     }
 
     // 启动RPC服务
     public void start() throws InterruptedException {
-        String key = this.ip + ":" + this.port;
+        String key = addr;
         synchronized (key) {
             bootstrap = new ServerBootstrap();
             bossGroup = new NioEventLoopGroup(ioThreads);
@@ -77,8 +76,9 @@ public class RPCServer {
                             pipe.addLast(collector);
                         }
                     });
-            ChannelFuture channelFuture = bootstrap.bind(this.ip, this.port).sync();
-            System.out.printf("server started @ %s:%d\n", ip, port);
+            String[] split = addr.split(":");
+            ChannelFuture channelFuture = bootstrap.bind(split[0], Integer.parseInt(split[1])).sync();
+            System.out.printf("server started @ %s:%d\n", addr);
 //            channelFuture.syncUninterruptibly();
 //            channelFuture.channel().closeFuture().sync();
 

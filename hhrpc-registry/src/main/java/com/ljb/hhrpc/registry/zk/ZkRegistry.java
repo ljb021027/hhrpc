@@ -17,14 +17,25 @@ public class ZkRegistry extends AbsRegistry {
 
     private static volatile ZkClient zkClient;
 
+    private String createConsumersPath(String serviceName) {
+        return ZkConstant.ROOT_PATH + ZkConstant.SEQ + serviceName + ZkConstant.CONSUMERS_PATH;
+    }
+
+    private String createProvidersPath(String serviceName) {
+        return ZkConstant.ROOT_PATH + ZkConstant.SEQ + serviceName + ZkConstant.CONSUMERS_PATH;
+    }
+
     public ZkRegistry(String zkAddress) {
+
         if (zkAddress == "") {
-            zkAddress = "localhost:2181";
+            addr = "localhost:2181";
+        } else {
+            addr = zkAddress;
         }
         if (zkClient == null) {
             synchronized (ZkRegistry.class) {
                 if (zkClient == null) {
-                    zkClient = new ZkClient(zkAddress, 5000, 1000);
+                    zkClient = new ZkClient(addr, 5000, 1000);
                 }
             }
         }
@@ -36,9 +47,9 @@ public class ZkRegistry extends AbsRegistry {
 
     @Override
     public void register(ServiceInfo info, URL url) {
-        String consumerPath = ZkConstant.ROOT_PATH + ZkConstant.SEQ + info.getUniqueName() + ZkConstant.CONSUMERS_PATH;
+        String consumerPath = createProvidersPath(info.getUniqueName());
         this.zkClient.createPersistent(consumerPath, true);
-        this.zkClient.createEphemeral(consumerPath + ZkConstant.SEQ + url.getUniquePath(), url);
+        this.zkClient.createEphemeral(consumerPath + ZkConstant.SEQ + addr);
         this.zkClient.subscribeChildChanges(consumerPath, new IZkChildListener() {
             @Override
             public void handleChildChange(String parentPath, List<String> children) throws Exception {
@@ -57,8 +68,8 @@ public class ZkRegistry extends AbsRegistry {
 
     @Override
     protected List<URL> initUrlCache(ServiceInfo info) {
-        String path = ZkConstant.ROOT_PATH + ZkConstant.SEQ + info.getUniqueName() + ZkConstant.CONSUMERS_PATH;
-        List<String> children = this.zkClient.getChildren(path);
+        String consumerPath = createProvidersPath(info.getUniqueName());
+        List<String> children = this.zkClient.getChildren(consumerPath);
         return children.stream().map(s -> {
             return new URL(s);
         }).collect(Collectors.toList());

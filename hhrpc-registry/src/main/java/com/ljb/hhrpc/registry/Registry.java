@@ -15,4 +15,6 @@ public interface Registry {
     void unRegister(ServiceInfo url);
 
     URL discover(ServiceInfo info);
+
+    String getAddr();
 }
