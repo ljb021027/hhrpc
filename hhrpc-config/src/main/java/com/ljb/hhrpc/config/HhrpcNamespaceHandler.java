@@ -13,9 +13,9 @@ public class HhrpcNamespaceHandler extends NamespaceHandlerSupport {
     @Override
     public void init() {
 
+        registerBeanDefinitionParser("registry", new HhrpcCustomBeanDefinitionParser(RegistryConfig.class, true));
         registerBeanDefinitionParser("service", new HhrpcCustomBeanDefinitionParser(ServiceConfig.class, true));
         registerBeanDefinitionParser("client", new HhrpcCustomBeanDefinitionParser(ClientConfig.class, true));
-        registerBeanDefinitionParser("registry", new HhrpcCustomBeanDefinitionParser(RegistryConfig.class, true));
 
     }
 }

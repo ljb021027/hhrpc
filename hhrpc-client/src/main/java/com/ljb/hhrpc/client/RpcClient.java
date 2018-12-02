@@ -6,7 +6,7 @@ import com.ljb.hhrpc.common.bean.RPCResponse;
 import com.ljb.hhrpc.common.bean.ServiceInfo;
 import com.ljb.hhrpc.common.bean.URL;
 import com.ljb.hhrpc.common.util.RequestId;
-import com.ljb.hhrpc.registry.Registry;
+import com.ljb.hhrpc.registry.RegistryFactory;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -20,11 +20,9 @@ public class RpcClient implements InvocationHandler {
 
     private Class<?> interfaceClass;
 
-    public static Registry registry;
-
     public Object bind(Class<?> cls) {
         this.interfaceClass = cls;
-        return Proxy.newProxyInstance(cls.getClassLoader(), new Class[] {interfaceClass}, this);
+        return Proxy.newProxyInstance(cls.getClassLoader(), new Class[]{interfaceClass}, this);
     }
 
     @Override
@@ -36,7 +34,7 @@ public class RpcClient implements InvocationHandler {
         request.setParameterTypes(method.getParameterTypes());
         request.setArgs(args);
 
-        URL discover = registry.discover(new ServiceInfo(interfaceClass.getName()));
+        URL discover = RegistryFactory.getRegistry().discover(new ServiceInfo(interfaceClass.getName()));
         NettyClient nettyClient = new NettyClient(discover.getUniquePath());
         RPCResponse response = nettyClient.send(request);
         return response.getResult();

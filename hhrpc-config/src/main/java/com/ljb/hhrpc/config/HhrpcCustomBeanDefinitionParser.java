@@ -1,6 +1,14 @@
 package com.ljb.hhrpc.config;
 
+import com.ljb.hhrpc.RPCServer;
+import com.ljb.hhrpc.client.MyProxyFactory;
+import com.ljb.hhrpc.config.client.ClientConfig;
+import com.ljb.hhrpc.config.registry.RegistryConfig;
+import com.ljb.hhrpc.config.service.ServiceConfig;
+import com.ljb.hhrpc.registry.RegistryFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.beans.factory.support.RootBeanDefinition;
 import org.springframework.beans.factory.xml.BeanDefinitionParser;
 import org.springframework.beans.factory.xml.ParserContext;
@@ -57,6 +65,34 @@ public class HhrpcCustomBeanDefinitionParser implements BeanDefinitionParser {
             beanDefinition.getPropertyValues().addPropertyValue(name, value);
         }
 
+        if (beanClass == RegistryConfig.class) {
+            RegistryFactory.addr = (String) beanDefinition.getPropertyValues().get("address");
+        }
+
+        if (beanClass == ServiceConfig.class) {
+            try {
+                RPCServer rpcServer = new RPCServer(Integer.parseInt((String)beanDefinition.getPropertyValues().get("port")) , 1, 10);
+                rpcServer.start();
+                rpcServer.service(Class.forName((String) beanDefinition.getPropertyValues().get("interfaceName")), Class.forName((String) beanDefinition.getPropertyValues().get("implName")));
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if (beanClass == ClientConfig.class) {
+            try {
+                Class<?> interfaceClass = Class.forName((String) beanDefinition.getPropertyValues().get("interfaceName"));
+                BeanDefinitionBuilder builder = BeanDefinitionBuilder.genericBeanDefinition(interfaceClass);
+                GenericBeanDefinition definition = (GenericBeanDefinition) builder.getRawBeanDefinition();
+                definition.getPropertyValues().add("interfaceClass", definition.getBeanClassName());
+                definition.setBeanClass(MyProxyFactory.class);
+                definition.setAutowireMode(GenericBeanDefinition.AUTOWIRE_BY_TYPE);
+                parserContext.getRegistry().registerBeanDefinition("abc", definition);
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
+
 
 //        if (!StringUtils.isEmpty(id)) {
 //            // 重复spring bean校验
@@ -69,7 +105,6 @@ public class HhrpcCustomBeanDefinitionParser implements BeanDefinitionParser {
 
         // 把RootBeanDefinition bean对象注册到spring容器中
         parserContext.getRegistry().registerBeanDefinition(id, beanDefinition);
-
         return beanDefinition;
     }
 }

@@ -7,7 +7,7 @@ import com.ljb.hhrpc.common.bean.URL;
 import com.ljb.hhrpc.common.codes.RPCDecoder;
 import com.ljb.hhrpc.common.codes.RPCEncoder;
 import com.ljb.hhrpc.registry.MessageRegistry;
-import com.ljb.hhrpc.registry.Registry;
+import com.ljb.hhrpc.registry.RegistryFactory;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -15,20 +15,23 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
  * @author liujiabei
  * @since 2018/9/29
  */
 public class RPCServer {
 
-    private Registry registry;
-    private String addr;
+    private static Set<Integer> portSet = ConcurrentHashMap.<Integer>newKeySet();
+
+    private int port;
     private int ioThreads; // 用来处理网络流的读写线程
     private int workerThreads; // 用于业务处理的计算线程
 
-    public RPCServer(Registry registry,int ioThreads, int workerThreads) {
-        this.registry = registry;
-        this.addr = registry.getAddr();
+    public RPCServer(int port, int ioThreads, int workerThreads) {
+        this.port = port;
         this.ioThreads = ioThreads;
         this.workerThreads = workerThreads;
     }
@@ -42,15 +45,17 @@ public class RPCServer {
     // 注册服务
     public RPCServer service(Class serviceInterface, Class<?> reqClass) {
         MessageRegistry.register(serviceInterface.getName(), reqClass);
-        this.registry.register(new ServiceInfo(serviceInterface.getName()),
-                new URL(addr));
+        RegistryFactory.getRegistry().register(new ServiceInfo(serviceInterface.getName()),
+                new URL("localhost", port));
         return this;
     }
 
     // 启动RPC服务
-    public void start() throws InterruptedException {
-        String key = addr;
-        synchronized (key) {
+    public void start(){
+        synchronized ((port + "").intern()) {
+            if (portSet.contains(port)) {
+                return;
+            }
             bootstrap = new ServerBootstrap();
             bossGroup = new NioEventLoopGroup(ioThreads);
             workerGroup = new NioEventLoopGroup(ioThreads);
@@ -76,9 +81,13 @@ public class RPCServer {
                             pipe.addLast(collector);
                         }
                     });
-            String[] split = addr.split(":");
-            ChannelFuture channelFuture = bootstrap.bind(split[0], Integer.parseInt(split[1])).sync();
-            System.out.printf("server started @ %s:%d\n", addr);
+            try {
+                ChannelFuture channelFuture = bootstrap.bind("localhost", port).sync();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            System.out.printf("server started @ %s:%d\n", "localhost", port);
+            portSet.add(port);
 //            channelFuture.syncUninterruptibly();
 //            channelFuture.channel().closeFuture().sync();
 

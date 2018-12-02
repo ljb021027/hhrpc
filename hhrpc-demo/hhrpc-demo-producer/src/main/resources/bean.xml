@@ -7,9 +7,9 @@
        http://www.ljb.com/schema/hhrpc
        http://www.ljb.com/schema/hhrpc.xsd">
 
-    <hhrpc:service id="testservice" interfaceName="com.ljb.hhrpc.demo.api.HelloService"
-                   implName="com.ljb.hhrpc.demo.api.HelloServiceImpl"/>
-
     <hhrpc:registry id="testRegistry" type="zookeeper" address="127.0.0.1:2181"/>
+    <hhrpc:service id="testservice" interfaceName="com.ljb.hhrpc.demo.api.HelloService"
+                   implName="com.ljb.hhrpc.demo.api.HelloServiceImpl" port="8889"/>
+
 
 </beans>

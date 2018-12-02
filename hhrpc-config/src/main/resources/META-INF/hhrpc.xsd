@@ -29,6 +29,11 @@
                 <xsd:documentation><![CDATA[ The method invoke timeout. ]]></xsd:documentation>
             </xsd:annotation>
         </xsd:attribute>
+        <xsd:attribute name="port" type="xsd:int">
+            <xsd:annotation>
+                <xsd:documentation><![CDATA[ The method invoke timeout. ]]></xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
     </xsd:complexType>
     <xsd:element name="service" type="serviceType">
         <xsd:annotation>

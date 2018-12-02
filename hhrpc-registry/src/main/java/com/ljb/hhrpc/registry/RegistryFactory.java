@@ -9,7 +9,9 @@ import com.ljb.hhrpc.registry.zk.ZkRegistryFactory;
  */
 public class RegistryFactory {
 
-    public static Registry getRegistry(String addr){
+    public static String addr;
+
+    public static Registry getRegistry(){
 
         return ZkRegistryFactory.getRegistry(addr).setBanlancing(new RandomStrategy());
     }

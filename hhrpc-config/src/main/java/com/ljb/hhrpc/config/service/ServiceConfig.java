@@ -12,6 +12,8 @@ public class ServiceConfig extends AbstractConfig {
 
     private String implName;
 
+    private int port;
+
     public String getInterfaceName() {
         return interfaceName;
     }
@@ -26,5 +28,13 @@ public class ServiceConfig extends AbstractConfig {
 
     public void setImplName(String implName) {
         this.implName = implName;
+    }
+
+    public int getPort() {
+        return port;
+    }
+
+    public void setPort(int port) {
+        this.port = port;
     }
 }

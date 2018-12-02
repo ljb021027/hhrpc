@@ -22,7 +22,7 @@ public class ZkRegistry extends AbsRegistry {
     }
 
     private String createProvidersPath(String serviceName) {
-        return ZkConstant.ROOT_PATH + ZkConstant.SEQ + serviceName + ZkConstant.CONSUMERS_PATH;
+        return ZkConstant.ROOT_PATH + ZkConstant.SEQ + serviceName + ZkConstant.PROVIDERS_PATH;
     }
 
     public ZkRegistry(String zkAddress) {
@@ -47,10 +47,10 @@ public class ZkRegistry extends AbsRegistry {
 
     @Override
     public void register(ServiceInfo info, URL url) {
-        String consumerPath = createProvidersPath(info.getUniqueName());
-        this.zkClient.createPersistent(consumerPath, true);
-        this.zkClient.createEphemeral(consumerPath + ZkConstant.SEQ + addr);
-        this.zkClient.subscribeChildChanges(consumerPath, new IZkChildListener() {
+        String providersPath = createProvidersPath(info.getUniqueName());
+        this.zkClient.createPersistent(providersPath, true);
+        this.zkClient.createEphemeral(providersPath + ZkConstant.SEQ + url.getUniquePath());
+        this.zkClient.subscribeChildChanges(providersPath, new IZkChildListener() {
             @Override
             public void handleChildChange(String parentPath, List<String> children) throws Exception {
                 cleanUrlCache(info);
@@ -68,8 +68,8 @@ public class ZkRegistry extends AbsRegistry {
 
     @Override
     protected List<URL> initUrlCache(ServiceInfo info) {
-        String consumerPath = createProvidersPath(info.getUniqueName());
-        List<String> children = this.zkClient.getChildren(consumerPath);
+        String providersPath = createProvidersPath(info.getUniqueName());
+        List<String> children = this.zkClient.getChildren(providersPath);
         return children.stream().map(s -> {
             return new URL(s);
         }).collect(Collectors.toList());
